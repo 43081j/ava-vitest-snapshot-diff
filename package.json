@@ -1,0 +1,20 @@
+{
+  "name": "@43081j/ava-vitest-snapshot-diff",
+  "version": "0.1.0",
+  "description": "Diffs snapshots.",
+  "homepage": "https://github.com/43081j/ava-vitest-snapshot-diff#readme",
+  "bugs": {
+    "url": "https://github.com/43081j/ava-vitest-snapshot-diff/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/43081j/ava-vitest-snapshot-diff.git"
+  },
+  "license": "MIT",
+  "author": "James Garbutt (https://github.com/43081j)",
+  "type": "module",
+  "main": "src/main.ts",
+  "scripts": {
+    "test": "vitest"
+  }
+}
