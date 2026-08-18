@@ -1,7 +1,39 @@
 {
-  "name": "@43081j/ava-vitest-snapshot-diff",
+  "name": "ava-vitest-snapshot-diff",
   "version": "0.1.0",
-  "description": "Diffs snapshots.",
+  "description": "Diff snapshots between AVA and Vitest",
+  "main": "src/main.ts",
+  "type": "module",
+  "bin": "lib/cli.js",
+  "exports": {
+    ".": {
+      "types": "./lib/main.d.ts",
+      "default": "./lib/main.js"
+    }
+  },
+  "files": [
+    "lib",
+    "!lib/**/*.test.js",
+    "!lib/**/*.test.d.ts"
+  ],
+  "scripts": {
+    "build:clean": "node -e \"require('fs').rmSync('./lib', { recursive: true, force: true })\"",
+    "build": "npm run build:clean && tsgo",
+    "lint:js": "oxlint src",
+    "lint:format": "oxfmt --check src",
+    "lint": "npm run lint:js && npm run lint:format",
+    "format": "oxfmt --write src",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "ava",
+    "vitest",
+    "snapshot",
+    "diff"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://github.com/43081j/ava-vitest-snapshot-diff#readme",
   "bugs": {
     "url": "https://github.com/43081j/ava-vitest-snapshot-diff/issues"
@@ -12,9 +44,12 @@
   },
   "license": "MIT",
   "author": "James Garbutt (https://github.com/43081j)",
-  "type": "module",
-  "main": "src/main.ts",
-  "scripts": {
-    "test": "vitest"
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.78.0",
+    "vitest": "^4.1.10"
   }
 }
