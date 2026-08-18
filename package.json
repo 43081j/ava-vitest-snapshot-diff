@@ -53,6 +53,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@levischuck/tiny-cbor": "^0.3.6"
+    "@levischuck/tiny-cbor": "^0.3.6",
+    "diff": "^9.0.0"
   }
 }

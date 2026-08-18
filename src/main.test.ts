@@ -21,9 +21,13 @@ test('reports no differences for equivalent snapshots', async () => {
 test('reports missing and differing keys', async () => {
   expect(await analyzeFixture('mismatch')).toEqual([
     'Key "basic 1" differs between snapshots.',
-    `  Line 2 differs:
-  AVA:   "  world"
-  Vitest: "  WORLD"`,
+    `  --- AVA
+  +++ Vitest
+  @@ -1,3 +1,3 @@
+   hello
+  -  world
+  +  WORLD
+   last line`,
     'Key "multiple snapshots 2" is missing in Vitest snapshot.',
     'Key "only in vitest 1" is missing in AVA snapshot.',
   ]);

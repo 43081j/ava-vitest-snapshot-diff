@@ -2,7 +2,20 @@ import { parseArgs } from 'node:util';
 import { cp, rm, mkdtemp } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { createTwoFilesPatch } from 'diff';
 import { isAvaSnapshot, decodeAvaSnapshot } from './ava-snapshot.js';
+
+// Strips the prefix and suffix boundaries of a diff
+const isPatchNoise = (line: string) =>
+  line.startsWith('=') || line.startsWith('\\');
+
+const formatDiff = (avaEntry: string, vitestEntry: string) =>
+  createTwoFilesPatch('AVA', 'Vitest', avaEntry, vitestEntry)
+    .split('\n')
+    .filter((line) => !isPatchNoise(line))
+    .map((line) => `  ${line}`)
+    .join('\n')
+    .trimEnd();
 
 const computeVitestEntries = async (filePath: string) => {
   const { default: entries } = await import(filePath);
@@ -103,17 +116,7 @@ export async function analyze(
         messages.push(`Key "${key}" is missing in Vitest snapshot.`);
       } else if (aEntry !== bEntry) {
         messages.push(`Key "${key}" differs between snapshots.`);
-        const aLines = aEntry.split('\n');
-        const bLines = bEntry.split('\n');
-        for (let i = 0; i < Math.max(aLines.length, bLines.length); i++) {
-          const aLine = aLines[i];
-          const bLine = bLines[i];
-          if (aLine !== bLine) {
-            messages.push(`  Line ${i + 1} differs:
-  AVA:   ${JSON.stringify(aLine)}
-  Vitest: ${JSON.stringify(bLine)}`);
-          }
-        }
+        messages.push(formatDiff(aEntry, bEntry));
       }
     }
   } finally {
