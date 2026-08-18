@@ -4,7 +4,9 @@
   "description": "Diff snapshots between AVA and Vitest",
   "main": "src/main.ts",
   "type": "module",
-  "bin": "lib/cli.js",
+  "bin": {
+    "ava-vitest-snapshot-diff": "lib/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./lib/main.d.ts",
