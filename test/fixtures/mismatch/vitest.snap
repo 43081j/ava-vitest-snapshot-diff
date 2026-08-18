@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`basic 1`] = `
+"hello
+  WORLD
+last line"
+`;
+
+exports[`multiple snapshots 1`] = `"first"`;
+
+exports[`only in vitest 1`] = `"unexpected"`;
