@@ -51,5 +51,8 @@
     "oxfmt": "^0.63.0",
     "oxlint": "^1.78.0",
     "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@levischuck/tiny-cbor": "^0.3.6"
   }
 }

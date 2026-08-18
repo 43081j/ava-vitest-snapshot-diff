@@ -1,63 +1,8 @@
 import { parseArgs } from 'node:util';
-import { readFile, cp, rm, mkdtemp } from 'node:fs/promises';
+import { cp, rm, mkdtemp } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-
-const isAvaSnapshot = (filePath: string) => filePath.endsWith('.md');
-const isVitestSnapshot = (filePath: string) => filePath.endsWith('.snap');
-
-const computeAvaEntries = async (filePath: string) => {
-  const fileContents = await readFile(filePath, 'utf-8');
-  const entries: Record<string, string[]> = {};
-  let currentTestName = '';
-  let currentSnapshotContent = '';
-  let inSnapshot = false;
-  let inSnapshotContent = false;
-  let snapshotIndent = 0;
-
-  for (const line of fileContents.split('\n')) {
-    if (line.startsWith('## ')) {
-      // test name
-      inSnapshot = false;
-      snapshotIndent = 0;
-      currentTestName = line.slice(3).trim();
-    } else if (line.startsWith('> Snapshot ')) {
-      // snapshot start
-      inSnapshot = true;
-      currentSnapshotContent = '';
-    } else if (inSnapshot && !inSnapshotContent) {
-      // snapshot content start
-      if (line.trim().startsWith('`')) {
-        snapshotIndent = line.indexOf('`');
-        inSnapshotContent = true;
-        currentSnapshotContent += '\n';
-      }
-    } else if (inSnapshotContent) {
-      if (line.trim().endsWith('`')) {
-        // snapshot content end
-        const entriesForSnapshot = entries[currentTestName] ?? [];
-        currentSnapshotContent += line
-          .slice(snapshotIndent, line.lastIndexOf('`'))
-          .replace(/␊/g, '');
-        entriesForSnapshot.push(currentSnapshotContent);
-        entries[currentTestName] = entriesForSnapshot;
-        inSnapshotContent = false;
-      } else {
-        // snapshot content line
-        currentSnapshotContent +=
-          line.slice(snapshotIndent).replace(/␊/g, '') + '\n';
-      }
-    }
-  }
-
-  const normalizedEntries: Record<string, string> = {};
-  for (const [key, entriesForKey] of Object.entries(entries)) {
-    for (let i = 0; i < entriesForKey.length; i++) {
-      normalizedEntries[`${key} ${i + 1}`] = entriesForKey[i]!;
-    }
-  }
-  return normalizedEntries;
-};
+import { isAvaSnapshot, decodeAvaSnapshot } from './ava-snapshot.js';
 
 const computeVitestEntries = async (filePath: string) => {
   const { default: entries } = await import(filePath);
@@ -90,19 +35,24 @@ export async function runCLI() {
     process.exit(1);
   }
 
-  if (isAvaSnapshot(a) && isAvaSnapshot(b)) {
+  const [aIsAva, bIsAva] = await Promise.all([
+    isAvaSnapshot(a),
+    isAvaSnapshot(b),
+  ]);
+
+  if (aIsAva && bIsAva) {
     console.log(
       'Both files are AVA snapshots. There should be exactly one of each (a vitest snapshot, and an AVA snapshot).',
     );
     process.exit(1);
-  } else if (isVitestSnapshot(a) && isVitestSnapshot(b)) {
+  } else if (!aIsAva && !bIsAva) {
     console.log(
       'Both files are Vitest snapshots. There should be exactly one of each (a vitest snapshot, and an AVA snapshot).',
     );
     process.exit(1);
   }
 
-  const [snapshotA, snapshotB] = isAvaSnapshot(a) ? [a, b] : [b, a];
+  const [snapshotA, snapshotB] = aIsAva ? [a, b] : [b, a];
   console.log(
     `Comparing AVA snapshot "${snapshotA}" with Vitest snapshot "${snapshotB}"...`,
   );
@@ -136,7 +86,7 @@ export async function analyze(
 
   try {
     const snapshotBEntries = await computeVitestEntries(tempSnapshotBPath);
-    const snapshotAEntries = await computeAvaEntries(avaSnapshot);
+    const snapshotAEntries = await decodeAvaSnapshot(avaSnapshot);
 
     const allKeys = new Set([
       ...Object.keys(snapshotAEntries),
